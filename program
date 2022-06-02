@@ -1,0 +1,54 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+namespace deleteFilesFW
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int countOfDeletedFiles = 0;
+
+            string sourceDirectory = @"\\random\pdOutput\kontrolni nahledy_nemazat";
+            string logPath = @"\\random\pdOutput\kontrolni nahledy_nemazat\log.txt";
+            string currentFilePath = "";
+            string fileName;
+
+            SortedDictionary<DateTime, string> listOfDeletedFiles = new SortedDictionary<DateTime, string>();
+            var pdfFiles = Directory.EnumerateFiles(sourceDirectory, "*.pdf");
+
+            DateTime creationTime;
+            DateTime timeToDeleteFiles = DateTime.Now.AddMonths(-1);
+
+            foreach (var currentFile in pdfFiles)
+            {
+                currentFilePath = currentFile.ToString();
+                fileName = Path.GetFileName(currentFilePath);
+                creationTime = File.GetCreationTime(currentFile);
+
+                if (creationTime < timeToDeleteFiles)
+                {
+                    File.Delete(currentFilePath);
+                    listOfDeletedFiles.Add(creationTime, "  " + fileName);
+                    countOfDeletedFiles++;
+                }
+            }
+            //delete old log
+            File.WriteAllText(logPath, String.Empty);
+            //write new log
+            using (StreamWriter writer = new StreamWriter(logPath))
+            {
+                writer.WriteLine("Počet smazaných souborů: " + countOfDeletedFiles);
+
+                foreach (var item in listOfDeletedFiles)
+                {
+                    writer.WriteLine(item.ToString());
+                }
+
+            }
+
+        }
+    }
+}
+
